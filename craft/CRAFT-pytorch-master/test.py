@@ -164,6 +164,9 @@ if __name__ == '__main__':
         image = imgproc.loadImage(image_path)
         #image = cv2.imread(image_path)
 
+        file = open("../MVP/input.json", "r")
+        data = file.read()
+        stringson = json.loads(data)
 
         #preproc_image(im):
         #image = cv2.resize(image, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
@@ -179,6 +182,8 @@ if __name__ == '__main__':
         mask_file = result_folder + "/res_" + filename + '_mask.jpg'
         cv2.imwrite(mask_file, score_text)
 
-        file_utils.saveResult(image_path, image[:,:,::-1], polys, dirname=result_folder)
+        file_utils.saveResult(stringson, image_path, image[:,:,::-1], polys, dirname=result_folder)
+
+
 
     print("elapsed time : {}s".format(time.time() - t))
