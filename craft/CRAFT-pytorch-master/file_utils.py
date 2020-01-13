@@ -134,13 +134,14 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
             prev_y_min = 0
             prev_y_max = 100000
             doc_type = "СНИЛС"
+            counter = 1
 
             for i, box in enumerate(boxes):
                 poly = np.array(box).astype(np.int32).reshape((-1))
                 strResult = ','.join([str(p) for p in poly]) + '\r\n'
                 f.write(strResult)
 
-                # BEGIN OCR
+################################## BEGIN OCR
 
                 poly = poly.reshape(-1, 2)
 
@@ -153,6 +154,7 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
                     if x_min >= check_left:
                         pass
 
+                config = ('-l rus --oem 1 --psm 8')
                 ROI = img[y_min:y_max,x_min:x_max]
                 ROI = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
                 ROI = cv2.blur(ROI, (2, 2))
@@ -160,13 +162,26 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
                 ROI = cv2.resize(ROI, None, fx=1.4, fy=1.4, interpolation=cv2.INTER_CUBIC)
 
                 # Rotation for passport number
+
                 if doc_type != "СНИЛС":
                     if y_max-y_min > x_max-x_min :
-                        print("turn")
-                        ROI = cv2.transpose(ROI)
-                        ROI = cv2.flip(ROI, flipCode=0)
+                        if counter == 4:
+                            continue
+                        else:
+                            ROI = cv2.transpose(ROI)
+                            ROI = cv2.flip(ROI, flipCode=0)
+                            string = pytesseract.image_to_string(ROI,config = config)
+                            if string.isnumeric():
+                                print("turn")
+                                print(string)
+                                rec_str = string
+                                counter-=-1
+                                #добавить в номер паспорта сразу (json)
+                            else:
+                                continue
 
-                config = ('-l rus --oem 1 --psm 8')
+
+
                 rec_str = pytesseract.image_to_string(ROI,config = config)
 
                 if(isNew):
@@ -198,8 +213,6 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
                     font_scale = 0.5
                     cv2.putText(img, "{}".format(texts[i]), (poly[0][0]+1, poly[0][1]+1), font, font_scale, (0, 0, 0), thickness=1)
                     cv2.putText(img, "{}".format(texts[i]), tuple(poly[0]), font, font_scale, (0, 255, 255), thickness=1)
-
-        # To json
 
 
         if doc_type == "СНИЛС":
@@ -287,10 +300,10 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
             json.dump(stringson,outfile,ensure_ascii=False,indent = 4)
 
         # Print recognised text
-        #for i in range(row_num+1):
-        #   for j in range(len(one_line[i])):
-        #        print(one_line[i][j][0]+" | "+str(one_line[i][j][1][3][1]-one_line[i][j][1][0][1]))
-        #    print("\n")
+        for i in range(row_num+1):
+            for j in range(len(one_line[i])):
+                print(one_line[i][j][0]+" | "+str(one_line[i][j][1][3][1]-one_line[i][j][1][0][1]))
+            print("\n")
 
         # Save result image
         cv2.imwrite(res_img_file, img)

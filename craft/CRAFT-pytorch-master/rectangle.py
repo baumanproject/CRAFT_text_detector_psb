@@ -66,23 +66,34 @@ def four_point_transform(image, pts):
 	return warped
 
 
+
+
+
 if __name__ == '__main__':
 
 
-	image = cv2.imread('../image/photo_2020-01-09_14-39-58.jpg')
+	image = cv2.imread('../temp_images/stas.jpg')
 	original_image = image.copy()
+
+	image = cv2.copyMakeBorder(image, 5, 5, 5, 5, cv2.BORDER_REPLICATE)
+	cv2.imshow("bounds up",image)
+	cv2.waitKey(0)
 
 	# resize using ratio (old height to the new height)
 	ratio = image.shape[0] / 500.0
 	image = imutils.resize(image, height=500)
 
 	image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+	cv2.imshow("yuv",image_yuv)
+	cv2.waitKey(0)
 
 	# grap only the Y component
 	image_y = np.zeros(image_yuv.shape[0:2], np.uint8)
 	image_y[:, :] = image_yuv[:, :, 0]
 
 	image_blurred = cv2.GaussianBlur(image_y, (3, 3), 0)
+	cv2.imshow("gauss", image_blurred)
+	cv2.waitKey(0)
 
 	# find edges in the image
 	edges = cv2.Canny(image_blurred, 50, 200, apertureSize=3)
@@ -94,7 +105,8 @@ if __name__ == '__main__':
 	cv2.drawContours(image, contours, -1, (0, 255, 0), 1)
 	# !! Attention !! Do not draw contours on the image at this point
 	# I have drawn all the contours just to show below image
-
+	cv2.imshow("im+cnt",image)
+	cv2.waitKey(0)
 	# to collect all the detected polygons
 	polygons = []
 
@@ -111,14 +123,16 @@ if __name__ == '__main__':
 
 	# draw points of the intersection of only the largest polyogon with red color
 	cv2.drawContours(image, sortedPoly[0], -1, (0, 0, 255), 5)
+	cv2.imshow("poly",image)
+	cv2.waitKey(0)
 
 	# get the contours of the largest polygon in the image
 	simplified_cnt = sortedPoly[0]
-
+	cv2.destroyAllWindows()
 	# check if the polygon has four point
-	if len(simplified_cnt) >= 4:
+	#if len(simplified_cnt) >= 4:
 		# trasform the prospective of original image
-		cropped_image = four_point_transform(original_image, simplified_cnt.reshape(4, 2) * ratio)
+	cropped_image = four_point_transform(original_image, simplified_cnt.reshape(4, 2) * ratio)
 
 	gray_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 	T = threshold_local(gray_image, 11, offset=10, method="gaussian")
@@ -129,6 +143,7 @@ if __name__ == '__main__':
 	cv2.imshow("Scanned", binarized_image)
 	cv2.imshow("Cropped", cropped_image)
 	cv2.waitKey(0)
+	cv2.destroyAllWindows()
 
 
 
