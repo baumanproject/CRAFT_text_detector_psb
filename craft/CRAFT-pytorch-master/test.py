@@ -169,11 +169,19 @@ if __name__ == '__main__':
         stringson = json.loads(data)
 
         #preproc_image(im):
-        #image = cv2.resize(image, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
-        #image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        #image = cv2.bilateralFilter(src=image, d=190, sigmaColor=30, sigmaSpace=20)
-        #image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        #end_of_preproc
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        image = cv2.blur(image, (2, 2))
+        image = cv2.bilateralFilter(src=image, d=190, sigmaColor=30, sigmaSpace=20)
+        w=image.shape[0]
+        h=image.shape[1]
+        image = image.tolist()
+        for i in range(w):
+            for j in range(h):
+                tmp = image[i][j]
+                image[i][j] = [tmp,tmp,tmp]
+        image = np.asarray(image)
+        cv2.imshow("im",image)
+        cv2.waitKey(0)
 
         bboxes, polys, score_text = test_net(net, image, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
 

@@ -133,7 +133,7 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
             row_num=0
             prev_y_min = 0
             prev_y_max = 100000
-            doc_type = "СНИЛС"
+            doc_type = "Паспорт"
             counter = 1
 
             for i, box in enumerate(boxes):
@@ -149,36 +149,34 @@ def saveResult(stringson, img_file, img, boxes, dirname='./result/', verticals=N
                 y_l = [i[1] for i in poly]
                 x_min,x_max,y_min,y_max = min(x_l)-3,max(x_l)+3,min(y_l)-3,max(y_l)+3
 
-                if row_num != 0:
-                    check_left = one_line[0][-1][1][1][0]   #[first_line][last_element][poly_coords][2nd_point_RT][x]
-                    if x_min >= check_left:
-                        pass
-
                 config = ('-l rus --oem 1 --psm 8')
                 ROI = img[y_min:y_max,x_min:x_max]
-                ROI = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
-                ROI = cv2.blur(ROI, (2, 2))
-                ROI = cv2.bilateralFilter(src=ROI, d=175, sigmaColor=30, sigmaSpace=20)
-                ROI = cv2.resize(ROI, None, fx=1.4, fy=1.4, interpolation=cv2.INTER_CUBIC)
-
+                #ROI = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
+                #ROI = cv2.blur(ROI, (2, 2))
+                #ROI = cv2.bilateralFilter(src=ROI, d=190, sigmaColor=30, sigmaSpace=20)
+                #ROI = cv2.resize(ROI, None, fx=1.4, fy=1.4, interpolation=cv2.INTER_CUBIC)
+                cv2.imshow("roi",ROI)
+                cv2.waitKey(0)
                 # Rotation for passport number
 
-                if doc_type != "СНИЛС":
+                if doc_type == "Паспорт":
                     if y_max-y_min > x_max-x_min :
                         if counter == 4:
-                            continue
+                            pass
                         else:
                             ROI = cv2.transpose(ROI)
                             ROI = cv2.flip(ROI, flipCode=0)
                             string = pytesseract.image_to_string(ROI,config = config)
-                            if string.isnumeric():
-                                print("turn")
+                            if string.isnumeric() and len(string)>1:
+                                cv2.imshow("turn",ROI)
+                                cv2.waitKey(0)
                                 print(string)
-                                rec_str = string
+                                #rec_str = string
                                 counter-=-1
+                                continue
                                 #добавить в номер паспорта сразу (json)
                             else:
-                                continue
+                                pass
 
 
 
