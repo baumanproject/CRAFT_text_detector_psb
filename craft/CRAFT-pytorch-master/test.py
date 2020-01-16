@@ -174,14 +174,16 @@ if __name__ == '__main__':
         image = cv2.bilateralFilter(src=image, d=190, sigmaColor=30, sigmaSpace=20)
         w=image.shape[0]
         h=image.shape[1]
-        image = image.tolist()
+        image  = image.tolist()
         for i in range(w):
             for j in range(h):
                 tmp = image[i][j]
                 image[i][j] = [tmp,tmp,tmp]
         image = np.asarray(image)
-        cv2.imshow("im",image)
+        #cv2.imshow("im",image)
         cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
 
         bboxes, polys, score_text = test_net(net, image, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
 
