@@ -26,10 +26,10 @@ import json
 import zipfile
 
 from craft import CRAFT
-
-
-
+from file_utils import rotate_doc
 from collections import OrderedDict
+
+
 def copyStateDict(state_dict):
     if list(state_dict.keys())[0].startswith("module"):
         start_idx = 1
@@ -41,8 +41,10 @@ def copyStateDict(state_dict):
         new_state_dict[name] = v
     return new_state_dict
 
+
 def str2bool(v):
     return v.lower() in ("yes", "y", "true", "t", "1")
+
 
 parser = argparse.ArgumentParser(description='CRAFT Text Detection')
 parser.add_argument('--trained_model', default='weights/craft_mlt_25k.pth', type=str, help='pretrained model')
@@ -68,11 +70,15 @@ result_folder = './result/'
 if not os.path.isdir(result_folder):
     os.mkdir(result_folder)
 
+
 def test_net(net, image, text_threshold, link_threshold, low_text, cuda, poly, refine_net=None):
+
     t0 = time.time()
 
     # resize
-    img_resized, target_ratio, size_heatmap = imgproc.resize_aspect_ratio(image, args.canvas_size, interpolation=cv2.INTER_LINEAR, mag_ratio=args.mag_ratio)
+    img_resized, target_ratio, size_heatmap = imgproc.resize_aspect_ratio(image, args.canvas_size,
+                                                                          interpolation=cv2.INTER_LINEAR,
+                                                                          mag_ratio=args.mag_ratio)
     ratio_h = ratio_w = 1 / target_ratio
 
     # preprocessing
@@ -120,8 +126,8 @@ def test_net(net, image, text_threshold, link_threshold, low_text, cuda, poly, r
     return boxes, polys, ret_score_text
 
 
-
 if __name__ == '__main__':
+
     # load net
     net = CRAFT()
     # initialize
@@ -162,28 +168,31 @@ if __name__ == '__main__':
     for k, image_path in enumerate(image_list):
         print("Test image {0}/{1}: {2} \n".format(k+1, len(image_list), image_path))
         image = imgproc.loadImage(image_path)
-        #image = cv2.imread(image_path)
 
         file = open("../MVP/input.json", "r")
         data = file.read()
         stringson = json.loads(data)
 
-        #preproc_image(im):
+        # preprocessed_image(im):
+        image = rotate_doc(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image = cv2.blur(image, (2, 2))
         image = cv2.bilateralFilter(src=image, d=190, sigmaColor=30, sigmaSpace=20)
-        w=image.shape[0]
-        h=image.shape[1]
+        image = cv2.resize(image, None, fx=1.4, fy=1.4, interpolation=cv2.INTER_CUBIC)
+        w = image.shape[0]
+        h = image.shape[1]
         image = image.tolist()
         for i in range(w):
             for j in range(h):
                 tmp = image[i][j]
-                image[i][j] = [tmp,tmp,tmp]
+                image[i][j] = [tmp, tmp, tmp]
         image = np.asarray(image)
-        cv2.imshow("im",image)
-        cv2.waitKey(0)
+        image = image.astype("uint8")
 
-        bboxes, polys, score_text = test_net(net, image, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
+        bboxes, polys, score_text = test_net(net, image,
+                                             args.text_threshold, args.link_threshold,
+                                             args.low_text, args.cuda,
+                                             args.poly, refine_net)
 
         # save score text
         filename, file_ext = os.path.splitext(os.path.basename(image_path))
@@ -191,7 +200,5 @@ if __name__ == '__main__':
         cv2.imwrite(mask_file, score_text)
 
         file_utils.saveResult(stringson, image_path, image[:,:,::-1], polys, dirname=result_folder)
-
-
 
     print("elapsed time : {}s".format(time.time() - t))
