@@ -63,6 +63,25 @@ The result image and socre maps will be saved to `./result` by default.
 * `--refine`: use link refiner for sentense-level dataset
 * `--refiner_model`: pretrained refiner model
 
+### Installation Tesseract-Ocr
+
+For working with pytesseract you need to install Tesseract-OCR Engine.
+You can do it with commands:
+```
+sudo apt install tesseract-ocr
+sudo apt install libtesseract-dev
+
+```
+Download russian rus.traindata file from this github:
+
+https://github.com/tesseract-ocr/tesseract/wiki/Data-Files
+
+Then you need to include russian languages to folder. Place the file above.
+ Folder's path:
+
+``
+/usr/share/tesseract-ocr/4.00/tessdata
+``
 
 ## Links
 - WebDemo : https://demo.ocr.clova.ai/
